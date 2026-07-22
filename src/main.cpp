@@ -17,25 +17,33 @@
 using namespace std;
 using namespace std::filesystem;
 
-string VERSION = "v0.5 - beta";
+string VERSION = "v1.0 - stable";
 string PRODUCT = "QuickServe by MM - " + VERSION;
 
 int main(int argc, char *argv[]) {
   sPrint(PRODUCT);
   sPrint("------------------------------");
 
-  path dir;
+  path dir = current_path();
+
   int port = 8080;
 
-  if (argc == 1) {
-    dir = current_path();
-  } else if (argc == 2) {
-    dir = argv[1];
-  } else if (argc == 3) {
-    dir = argv[1];
-    port = atoi(argv[2]);
-  } else {
-    sPrint("Error: too many arguments", true);
+  string iface = "all";
+  string password = "";
+  string user = "user0";
+
+  int argsOk = prepArgs(argc, argv, dir, port, iface, password, user);
+
+  if (argsOk != 0) {
+    if (argsOk == -2) {
+      return 0;
+    }
+
+    return argsOk;
+  }
+
+  if (port < 1 || port > 65535) {
+    sPrint("Error: port must be between 1 and 65535", true);
     return 1;
   }
 
@@ -52,8 +60,8 @@ int main(int argc, char *argv[]) {
   dir = canonical(dir);
 
   sPrint("Serving directory: " + dir.string());
+  sPrint("Interface: " + iface);
+  sPrint("Port: " + to_string(port));
 
-  startServer(dir, port);
-
-  return 0;
+  return startServer(dir, port, iface, password, user);
 }
